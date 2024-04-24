@@ -1,14 +1,12 @@
-# shebang line
+#! /Users/larcherm/Documents/Programmation/Automation/navigator/navenv/bin/python
+
 
 # TODO -- Unify the access to the registry and handle errors
 # TODO -- Implement the doctor keyword
 # TODO -- Improve the helper
-# TODO -- Fix the VSCode import
-# TODO -- Improve the switch between test and production
 # TODO -- Create a specific python environment (done but needs a better incorporation with the switch between test & production)
 
 import os
-import sys
 from applescript import tell
 
 REGISTRY = os.path.expanduser("~/.navconf")
@@ -21,8 +19,7 @@ from lib.misc import bolden, path_exists
 #########################################################
 #                        TO ACTION                      #
 #########################################################             
-def navigate_to(name):
-    register = Register(REGISTRY)
+def navigate_to(register, name):
     if name not in register:
         print(bolden(name) + " is not registered.")
         return
@@ -32,7 +29,6 @@ def navigate_to(name):
         # TODO -- Offer to delete?
         return
     
-    # as_path = applescript_path(path)
     tell.app('Terminal', f'do script "cd \\\"{path}\\\"; clear" in front window')
     tell.app('Terminal', 'activate')    
     tell.app('Finder', f'open POSIX file \"{path}\"')
@@ -44,8 +40,7 @@ def navigate_to(name):
 #########################################################
 #                       LIST ACTION                     #
 #########################################################             
-def list_registered(show_path=False):
-    register = Register(REGISTRY)
+def list_registered(register, show_path=False):
     print(f"{len(register)} folders registered:")
     for name, path in register.items():
         print(" > " + bolden(name) + (" (" + path + ")" if show_path else ""))
@@ -55,8 +50,7 @@ def list_registered(show_path=False):
 #                        ADD ACTION                     #
 #########################################################   
 
-def add_to_register(name, path):   
-    register = Register(REGISTRY)
+def add_to_register(register, name, path):   
     if register.contains(name, path):
         print("Folder already registered.")
         return
@@ -76,8 +70,7 @@ def add_to_register(name, path):
 #                        DEL ACTION                     #
 #########################################################   
         
-def del_from_register(name):
-    register = Register(REGISTRY)
+def del_from_register(register, name):
     if register.contains(name):
         path = register[name]
         del register[name]
@@ -91,21 +84,22 @@ def del_from_register(name):
 #                       MAIN LOGIC                      #
 ######################################################### 
 
-def act(args):
+def act(register, args):
     match args.action:
         case "to":
-            navigate_to(name=args.name)
+            navigate_to(register=register, name=args.name)
         case "list":
-            list_registered(show_path = args.show_path)
+            list_registered(register=register, show_path=args.show_path)
         case "add":
-            add_to_register(name=args.name, path=args.path)
+            add_to_register(register=register, name=args.name, path=args.path)
         case "del":
-            del_from_register(name=args.name)
+            del_from_register(register=register, name=args.name)
             pass
 
 def main():
-    parser = Parser()
-    act(parser.args)    
+    register = Register(REGISTRY)
+    parser = Parser(register=register)
+    act(register=register, args=parser.args)    
 
 if __name__ == "__main__":
     main()

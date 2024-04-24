@@ -8,6 +8,7 @@ CONFFILE = ~/.navconf
 install: uninstall
 	cp -R . $(LIBFOLDER)
 	sed -i '' '1s|^.*$$|#!/usr/local/lib/navigator/navenv/bin/python|' $(BINFILE)
+	eval "$$(register-python-argcomplete nav)"
 	ln -s $(BINFILE) $(BINLINK)
 
 full-uninstall: uninstall

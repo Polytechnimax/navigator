@@ -46,7 +46,6 @@ Deregisters a folder.
 
 I am currently working on (or at least thinking of) adding the following features.  
 1. Several small improvements.
-2. An installer.
-3. An auto-completion system to facilitate navigation.
-4. A `doctor` keyword to try and solve corrupted registers.
-5. An Alfred Workflow integration.
+2. A `doctor` keyword to try and solve corrupted registers.
+3. An Alfred Workflow integration.
+4. Make the auto-complete case-insensitive.
