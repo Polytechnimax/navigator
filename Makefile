@@ -6,10 +6,11 @@ CONFFILE = ~/.navconf
 .PHONY: uninstall
 
 install: uninstall
+	activate-global-python-argcomplete
 	cp -R . $(LIBFOLDER)
 	sed -i '' '1s|^.*$$|#!/usr/local/lib/navigator/navenv/bin/python|' $(BINFILE)
-	eval "$$(register-python-argcomplete nav)"
 	ln -s $(BINFILE) $(BINLINK)
+	eval "$$(register-python-argcomplete nav)"
 
 full-uninstall: uninstall
 	rm $(CONFFILE)

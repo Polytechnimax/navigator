@@ -1,31 +1,33 @@
 #! /Users/larcherm/Documents/Programmation/Automation/navigator/navenv/bin/python
 
-
-# TODO -- Unify the access to the registry and handle errors
+# TODO -- Improve the registry's handling of the broken and invalid entries
 # TODO -- Implement the doctor keyword
 # TODO -- Improve the helper
-# TODO -- Create a specific python environment (done but needs a better incorporation with the switch between test & production)
+# TODO -- Improve the description in the main file
+
 
 import os
 from applescript import tell
+import logging
+
 
 REGISTRY = os.path.expanduser("~/.navconf")
 from lib.argparser import Parser
-from lib.register import Register
-from lib.misc import bolden, path_exists
+from lib.registry import Registry
+from lib.misc import bolden, dir_exists
 
 
 
 #########################################################
 #                        TO ACTION                      #
 #########################################################             
-def navigate_to(register, name):
-    if name not in register:
+def navigate_to(registry, name):
+    if name not in registry:
         print(bolden(name) + " is not registered.")
         return
-    path = register[name]
-    if not path_exists(path):
-        print("Registered path (" + path + ") does not exist.")
+    path = registry[name]
+    if not dir_exists(path):
+        print("registered path (" + path + ") does not exist.")
         # TODO -- Offer to delete?
         return
     
@@ -40,43 +42,65 @@ def navigate_to(register, name):
 #########################################################
 #                       LIST ACTION                     #
 #########################################################             
-def list_registered(register, show_path=False):
-    print(f"{len(register)} folders registered:")
-    for name, path in register.items():
-        print(" > " + bolden(name) + (" (" + path + ")" if show_path else ""))
+def list_registered(registry: Registry, show_all: bool = False, show_broken: bool = False, show_invalid: bool = False, show_path: bool = False):
+    n_reg, n_brk, n_inv = len(registry), len(registry.broken), len(registry.invalid)
+    if show_all or (not show_broken and not show_invalid):
+        print(f"{n_reg} folder{'' if n_reg<=1 else 's'} registered:")
+        for name, path in registry.items():
+            print(f" - {bolden(name)}" + (" (" + path + ")" if show_path else ""))
+        if(not show_all and (registry.broken or registry.invalid)): 
+            print(f"Warning: you have {n_brk} broken path{'' if n_brk<=1 else 's'} and {n_inv} invalid entr{'y' if n_inv<=1 else 'ies'} in your registry.")
+    if show_all or show_broken:
+        print(f"{n_brk} broken path{'' if n_brk<=1 else 's'}:")
+        for name, path in registry.broken.items():
+            print(f" - {bolden(name)}" + (" (" + path + ")" if show_path else ""))
+    if show_all or show_invalid:
+        print(f"{len(registry.invalid)} invalid entr{'y' if n_inv<=1 else 'ies'}:")
+        for name in registry.invalid:
+            print(f" - {bolden(name)}")
 
 
 #########################################################
 #                        ADD ACTION                     #
 #########################################################   
 
-def add_to_register(register, name, path):   
-    if register.contains(name, path):
+def add_to_registry(registry, name, path):   
+    if registry.contains(name, path):
         print("Folder already registered.")
         return
-    if register.contains(name):
+    is_valid, is_broken, is_invalid = name in registry, name in registry.broken, name in registry.invalid
+    if is_valid or is_broken or is_invalid:
+        print(f"{name} is already registered ({f"valid path {registry[name]})" if is_valid else f"broken path {registry.broken[name]})" if is_broken else "invalid)"}.")
         while True:
-            ans = input(f"Another folder is already registered under this name.({register[name]})\nDo you wish to replace it? (y/N) ")
+            ans = input(f"Do you wish to replace it? (y/N) ")
             if ans.lower() in { 'no', 'n', '' }:
                 return
             if ans.lower() in { 'yes', 'y'}:
                 break
             print(bolden('Unrecognised answer.'))
-    register[name] = path 
-    register.write_to(REGISTRY)
+    if name in registry.broken: del registry.broken[name]
+    if name in registry.invalid: del registry.invalid[name]
+    registry[name] = path 
+    registry.write_to(REGISTRY)
         
         
 #########################################################
 #                        DEL ACTION                     #
 #########################################################   
         
-def del_from_register(register, name):
-    if register.contains(name):
-        path = register[name]
-        del register[name]
-        register.write_to(REGISTRY)
+def del_from_registry(registry, name):
+    if name in registry:
+        path = registry[name]
+        del registry[name]
+        registry.write_to(REGISTRY)
+    elif name in registry.broken:
+        del registry.broken[name]
+        registry.write_to(REGISTRY)
+    elif name in registry.invalid:
+        del registry.invalid[name]
+        registry.write_to(REGISTRY)
     else:
-        print("No folder with this name registered.")
+        print(f"{name} does not correspond to a (valid, broken or invalid) registered folder.")
 
 
 
@@ -84,22 +108,22 @@ def del_from_register(register, name):
 #                       MAIN LOGIC                      #
 ######################################################### 
 
-def act(register, args):
+def act(registry, args):
     match args.action:
         case "to":
-            navigate_to(register=register, name=args.name)
+            navigate_to(registry=registry, name=args.name)
         case "list":
-            list_registered(register=register, show_path=args.show_path)
+            list_registered(registry=registry, show_all=args.show_all, show_broken=args.show_broken, show_invalid=args.show_invalid, show_path=args.show_path)
         case "add":
-            add_to_register(register=register, name=args.name, path=args.path)
+            add_to_registry(registry=registry, name=args.name, path=args.path)
         case "del":
-            del_from_register(register=register, name=args.name)
+            del_from_registry(registry=registry, name=args.name)
             pass
 
 def main():
-    register = Register(REGISTRY)
-    parser = Parser(register=register)
-    act(register=register, args=parser.args)    
+    registry = Registry(REGISTRY)
+    parser = Parser(registry=registry)
+    act(registry=registry, args=parser.args)    
 
 if __name__ == "__main__":
     main()
