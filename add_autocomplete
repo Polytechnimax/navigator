@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+CONFIG_FILE="$HOME/.zshrc" 
+CMD='eval "$(register-python-argcomplete nav)"'
+grep -qxF "$CMD" "$CONFIG_FILE" || echo "$CMD" >> "$CONFIG_FILE"
+# echo "Autocompletion setup added to $CONFIG_FILE"

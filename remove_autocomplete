@@ -1,0 +1,5 @@
+#!/bin/zsh
+CONFIG_FILE="$HOME/.zshrc" 
+CMD='eval "$(register-python-argcomplete nav)"'
+sed -i '' "/^$CMD$/d" "$CONFIG_FILE"
+# echo "Autocompletion setup removed from $CONFIG_FILE"

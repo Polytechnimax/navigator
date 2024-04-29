@@ -1,7 +1,10 @@
 from argparse import ArgumentParser
 from argcomplete import autocomplete
-from argcomplete.completers import FilesCompleter
+from argcomplete.completers import FilesCompleter, ChoicesCompleter
 from lib.registry import Registry
+
+
+
 
 
 # TODO -- Make the autocompletion case insensitive
@@ -27,28 +30,28 @@ class Parser:
         parser = ArgumentParser(description="Navigate to and manage registered folders.")
         subparsers = parser.add_subparsers(dest="action")
         
-        to_parser = subparsers.add_parser('to')
-        to_parser.add_argument('name', choices=registry)
+        to_parser = subparsers.add_parser('to', description="Navigate with Terminal and Finder to name folder.")
+        to_parser.add_argument('name', choices=registry, help="Name of the registered folder to navigate to.")
         
-        list_parser = subparsers.add_parser('list')
-        list_parser.add_argument('-a', '--all', action='store_true', dest='show_all')
-        list_parser.add_argument('-b', '--broken', action='store_true', dest='show_broken')
-        list_parser.add_argument('-i', '--invalid', action='store_true', dest='show_invalid')
-        list_parser.add_argument('-p', '--path', action='store_true', dest='show_path')
+        list_parser = subparsers.add_parser('list', description="List available registered folders." )
+        list_parser.add_argument('-a', '--all', action='store_true', dest='show_all', help="Also show broken and invalid entries.")
+        list_parser.add_argument('-b', '--broken', action='store_true', dest='show_broken', help='Show only entries with broken paths (i.e. broken paths).')
+        list_parser.add_argument('-i', '--invalid', action='store_true', dest='show_invalid', help='Show only entries with invalid paths (i.e. not paths).')
+        list_parser.add_argument('-p', '--path', action='store_true', dest='show_path', help="Also display the paths.")
         
         
-        add_parser = subparsers.add_parser('add')
-        add_parser.add_argument('name')
-        add_parser.add_argument('path').completer = FilesCompleter()
+        add_parser = subparsers.add_parser('add', description="Add a folder to the registry.")
+        add_parser.add_argument('path', help='Path to the folder.').completer = FilesCompleter()
+        add_parser.add_argument('name', help='Name under which to save the folder.')
+
+        del_parser = subparsers.add_parser("del", description="Deletes a folder from the registry.")
+        del_parser.add_argument('name', help="Name of the folder to delete.").completer = ChoicesCompleter(choices = registry|registry.broken|registry.invalid)
         
-        del_parser = subparsers.add_parser("del")
-        del_parser.add_argument('name', choices=registry|registry.broken|registry.invalid)
+        clean_parser = subparsers.add_parser("clean", description="Remove broken and invalid entries from the registry.")
+        clean_parser.add_argument('-b', '--broken', action='store_true', dest='clean_broken', help="Remove only broken entries.")
+        clean_parser.add_argument('-i', '--invalid', action='store_true', dest='clean_invalid', help="Remove only invalid entries.")
         
-        clean_parser = subparsers.add_parser("clean")
-        clean_parser.add_argument('-b', '--broken', action='store_true', dest='clean_broken')
-        clean_parser.add_argument('-i', '--invalid', action='store_true', dest='clean_invalid')
-        
-        doctor_parser = subparsers.add_parser("doctor")
+        doctor_parser = subparsers.add_parser("doctor", description="Not yet implemented.") # TODO
         
         autocomplete(parser)
         self.args = vars(parser.parse_args())

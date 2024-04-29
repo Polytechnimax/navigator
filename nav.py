@@ -1,6 +1,5 @@
 #! /Users/larcherm/Documents/Programmation/Automation/navigator/navenv/bin/python
 
-# TODO -- Improve the registry's handling of the broken and invalid entries
 # TODO -- Implement the doctor keyword
 # TODO -- Improve the helper
 # TODO -- Improve the description in the main file

@@ -10,7 +10,7 @@ install: uninstall
 	cp -R . $(LIBFOLDER)
 	sed -i '' '1s|^.*$$|#!/usr/local/lib/navigator/navenv/bin/python|' $(BINFILE)
 	ln -s $(BINFILE) $(BINLINK)
-	eval "$$(register-python-argcomplete nav)"
+	./add_autocomplete
 
 full-uninstall: uninstall
 	rm $(CONFFILE)
@@ -18,6 +18,7 @@ full-uninstall: uninstall
 uninstall: 
 	rm -rf $(LIBFOLDER)
 	rm -rf $(BINLINK)
+	./remove_autocomplete
 
 help: 
 	@echo "Installs/uninstalls navigator in the binaries."
