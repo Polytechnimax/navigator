@@ -18,24 +18,24 @@ class Registry(dict[str, str]):
         When registering a path under a certain name, this path is transformed into an absolute path.
 
         Attributes:
-        status (RegistryStatus): the status of the initialisation from the source
-        invalid (dict): the pairs of name-path (key-value) in the source which do not correspond to key-values pairs of type (str, str)
         broken (dict): the pairs of name-path (key-value) in the source for which path is not a valid directory
+        invalid (dict): the pairs of name-path (key-value) in the source which do not correspond to key-values pairs of type (str, str)
+        init_status (RegistryStatus): the status of the initialisation from the source
 
         Methods:
         contains: check if the Registry contains a name-path (key-value) pair after making path absolute 
     """
-    def __init__(self, source: str | None = None):
+    def __init__(self, source: str | None = None) -> None:
         """
-        
         Initialises the Registry from a mapping if given. 
-        Will raise an error if the mapping is not a dict[str, str]
+        Valid entries are stored in self; broken and invalid entries are stored in self.broken and self.invalid
+        Will raise an error if the mapping is not valid json file.
         
         Args:
             source (str | None, optional): name of the json file from which to to initialise the registry
         """
         super().__init__()
-        self.status = RegistryStatus.SUCCESS
+        self.init_status = RegistryStatus.SUCCESS
         self.invalid = {  }
         self.broken = {  }
         if source is None: return
@@ -44,17 +44,17 @@ class Registry(dict[str, str]):
                 mapping = json.load(jsonfile)
         except FileNotFoundError: 
             mapping = {}
-            self.status = RegistryStatus.NO_FILE
+            self.init_status = RegistryStatus.NO_FILE
         except json.JSONDecodeError: 
             mapping = {}
-            self.status = RegistryStatus.NO_READ
+            self.init_status = RegistryStatus.NO_READ
         finally:
             for k, v in mapping.items():
                 if not isinstance(k, str) or not isinstance(v, str):
-                    self.status = RegistryStatus.PARTIAL
+                    self.init_status = RegistryStatus.PARTIAL
                     self.invalid[k] = v
                 elif not dir_exists(v): 
-                    self.status = RegistryStatus.PARTIAL
+                    self.init_status = RegistryStatus.PARTIAL
                     self.broken[k] = v
                 else: self[k] = v
     
@@ -102,11 +102,33 @@ class Registry(dict[str, str]):
         """
         with open(filename, 'w') as file: json.dump(self | self.broken | self.invalid, file, indent=2)
     
-    def _init_from(self, source: dict | str) -> None:
+    def delete(self, name: str) -> None:
         """
-        Helper function to initialise from a non-None source.
+        Deletes an entry from the registry. Checks in self, self.broken and self.invalid.
 
         Args:
-            source (dict | str): the mapping (dictionary, json string or json filename) to initialise from
+            name (str): the name of the entry to be removed
+
+        Raises:
+            KeyError: raised when name does not appear in self, self.broken or self.invalid
         """
-        # TODO: handle the case where we do not succeed in importing from the source
+        if name in self:
+            del self[name]
+        elif name in self.broken:
+            del self.broken[name]
+        elif name in self.invalid:
+            del self.invalid[name]
+        else: 
+            raise KeyError(f"{name} does not correspond to any (valid, broken or invalid) entry in the registry.")
+        
+    def clean_invalid(self) -> None:
+        """
+        Removes any invalid entry in the registry.
+        """
+        self.invalid = {}
+
+    def clean_broken(self) -> None:
+        """
+        Removes any broken entry in the registry.
+        """
+        self.broken = {}
