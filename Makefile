@@ -1,5 +1,5 @@
 LIBFOLDER = /usr/local/lib/navigator
-BINFILE = /usr/local/lib/navigator/nav.py
+BINFILE = /usr/local/lib/navigator/main.py
 BINLINK = /usr/local/bin/nav
 CONFFILE = ~/.navconf
 

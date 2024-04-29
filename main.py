@@ -18,7 +18,7 @@ REGISTRY_FILENAME: str = os.path.expanduser("~/.navconf")            # Name of t
 #                        TO ACTION                      #
 #########################################################             
 
-def navigate_to(registry: Registry, name: str) -> None:
+def navigate_to(registry: Registry, name: str, in_finder: bool) -> None:
     """
     Executes the `nav to` command: tells the current instance of terminal to move to registered folder and opens a Finder window at this place.
 
@@ -27,21 +27,37 @@ def navigate_to(registry: Registry, name: str) -> None:
         name (str): name under which the desired path is registered
     """
     if name in registry.invalid:
-        print(f"Cannot move to {bolden(name)}: invalid entry in the registry. Consider cleaning your registry.") # TODO give the command
+        print(f"cannot move to {bolden(name)}: invalid entry in the registry\nconsider cleaning your registry")
         return 
     if name in registry.broken:
-        print(f"Cannot move to {bolden(name)}: corresponding path does not exist. Consider cleaning your registry.") # TODO give the command
+        print(f"cannot move to {bolden(name)}: corresponding path does not exist\nconsider cleaning your registry") 
         return 
     if name not in registry:
         print(bolden(name) + " is not registered.")
         return
     path = registry[name]
     
-    tell.app('Terminal', f'do script "cd \\\"{path}\\\"; clear" in front window')
-    tell.app('Terminal', 'activate')    
-    tell.app('Finder', f'open POSIX file \"{path}\"')
-    tell.app('Finder', 'activate')
-    # TODO -- Move and resize windows
+    finder_script = f"""
+	set screenResolution to bounds of window of desktop
+	set rightEdge to item 3 of screenResolution
+	set topEdge to item 2 of screenResolution
+
+    open POSIX file \"{path}\"
+    
+	set the bounds of the front window to {{rightEdge - 900, 0, rightEdge, 600}}
+
+	activate
+    """
+    terminal_script = f"""    
+    do script "cd \\\"{path}\\\"; clear" in front window
+
+	set the bounds of the front window to {0, 0, 900, 600}
+
+    activate
+    """
+        
+    if in_finder: tell.app('Finder', finder_script)
+    tell.app('Terminal', terminal_script)
 
     
 
@@ -186,7 +202,8 @@ def act(registry: Registry,
     match args['action']:
         case "to":
             navigate_to(registry=registry, 
-                        name=args['name'])
+                        name=args['name'], 
+                        in_finder=args['in_finder'])
         case "list":
             list_registered(registry=registry, 
                             show_all=args['show_all'], 
