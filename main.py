@@ -1,8 +1,4 @@
-#! /Users/larcherm/Documents/Programmation/Automation/navigator/navenv/bin/python
-
-# TODO -- Implement the doctor keyword
-# TODO -- Improve the helper
-# TODO -- Improve the description in the main file
+#! navenv/bin/python
 
 
 import os
@@ -13,6 +9,7 @@ from lib.registry import Registry
 from lib.misc import bolden, plural, typeof
 
 REGISTRY_FILENAME: str = os.path.expanduser("~/.navconf")            # Name of the file in which the registry is kept on the system
+
 
 #########################################################
 #                        TO ACTION                      #

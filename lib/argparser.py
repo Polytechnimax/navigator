@@ -4,11 +4,6 @@ from argcomplete.completers import FilesCompleter, ChoicesCompleter
 from lib.registry import Registry
 
 
-
-
-
-# TODO -- Make the autocompletion case insensitive
-
 class Parser: 
     """
     An argument parser for navigator. 
@@ -72,10 +67,7 @@ class Parser:
         clean_parser.add_argument('-i', '--invalid', 
                                   action='store_true', dest='clean_invalid', 
                                   help="remove only invalid entries")
-        
-        doctor_parser = subparsers.add_parser("doctor", 
-                                              description="not yet implemented") # TODO
-        
+                
         autocomplete(parser)
         self.args = vars(parser.parse_args())
 

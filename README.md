@@ -2,26 +2,27 @@
 
 ## Description
 
-`navigator` is a CLI utility which allows to quickly register and navigate to work directories. 
+`navigator` is small CLI utility which allows quick access to folders registered by the user.  
+It works by keeping a register of name-path pairs and offers various ways of managing this register.
 
 ## Why `navigator`?
 
 ### Motivation
-At some point in my previous job, I had a bunch of projects stored several folders (some in a personal folder, some on group svn folder, some in my personal folder of the group svn, some in colleagues folders in the group svn, etc.) 
+At some point in my previous job, I had a bunch of projects stored several folders (some in a personal folder, some in my group's svn folder, some in my personal folder of the group svn, some in colleagues folders in the group svn, etc.) 
 To quickly navigate to those folders, I designed `navigator`.
 
 ### Disclaimer
 I do not claim this is the most practical solution or a fantastic utility you should absolutely use... It's just a small script which helped me gain some time and that I still use today. 
 
 ## How to install?  
-* `make install` will install `navigator`
-* `make uninstall` will uninstall `navigator`
-* `make full-uninstall` will uninstall `navigator` and remove the configuration file from home folder.
+* `make install` will install `navigator` in `/usr/local/lib` and create a symlink in `/usr/local/bin`; it also adds a line in `.zshrc` to enable autocompletion  
+* `make uninstall` will uninstall `navigator`, undoing all of the above
+* `make full-uninstall` will uninstall `navigator` and remove the register if any exists
 
 ## How to use? 
 
 ### Intended use
-1. You start working on a new project, so you register a name an the path to this project's folder.
+1. You start working on a new project, so you register a name and the path to this project's folder.
 2. While working on this project, you can quickly navigate to the project's folder in Terminal and Finder. 
 3. You finish working on the project and deregister the name. 
 
@@ -30,22 +31,24 @@ I do not claim this is the most practical solution or a fantastic utility you sh
 ### Usage
 
 `nav add <name> <path/to/the/folder>`  
-Registers a new folder. `path` can be absolute or relative.
+registers a new folder; `path` can be absolute or relative.
 
 `nav list`  
-Lists registered folders. By default only the *names* of registered folders are displayed; to also display the paths, add option `--path` or `-p`.
+lists registered folders  
+by default only the *names* of registered folders are displayed; to also display the paths, add option `--path` or `-p`
+by default only valid entries (i.e. path are strings that point toward an existing folder) are displayed; to display broken and/or invalid entries add `-a`/`--all` and/or `-b`/`--broken` and/or `-i`/`--invalid`
 
 `nav to <name>`  
-Open terminal and finder window of a registered folder.
+navigates with the Terminal to the specified folder  
+add `-f`/`--folder` to also open a Finder window at location
 
 `nav del <name>`  
-Deregisters a folder. 
+deregisters a folder
 
+`nav clean`
+removes broken (i.e. non-existing paths) and invalid (i.e. non-string paths) entries from the register
+use `-b`/`--broken` or `-i`/`--invalid` to remove only the broken or invalid ones
 
 ## Coming features
 
-I am currently working on (or at least thinking of) adding the following features.  
-1. Several small improvements.
-2. A `doctor` keyword to try and solve corrupted registers.
-3. An Alfred Workflow integration.
-4. Make the auto-complete case-insensitive.
+I think the current versions is quite nice to use. I'll keep on working on it as I still use it. My current goal is to adapt and turn it into an Alfred Workflow.

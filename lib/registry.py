@@ -3,15 +3,6 @@ from enum import Enum
 
 from lib.misc import abspath, dir_exists
 
-class RegistryStatus(Enum):
-    """
-    The possible status when initialising a Registry from a filename.
-    """
-    SUCCESS = 1 # The file could be read
-    NO_FILE = 2 # The file does not exist
-    NO_READ = 3 # The file exists but does not correspond to json format
-    PARTIAL = 4 # The file exists and corresponds to json format, but the key-values are not all of type (str, str)
-
 class Registry(dict[str, str]):
     """
         Registry extends dict[str, str] and is intended to store paths (values) under names (keys). 
@@ -35,7 +26,6 @@ class Registry(dict[str, str]):
             source (str | None, optional): name of the json file from which to to initialise the registry
         """
         super().__init__()
-        self.init_status = RegistryStatus.SUCCESS
         self.invalid = {  }
         self.broken = {  }
         if source is None: return
@@ -44,17 +34,13 @@ class Registry(dict[str, str]):
                 mapping = json.load(jsonfile)
         except FileNotFoundError: 
             mapping = {}
-            self.init_status = RegistryStatus.NO_FILE
         except json.JSONDecodeError: 
             mapping = {}
-            self.init_status = RegistryStatus.NO_READ
         finally:
             for k, v in mapping.items():
                 if not isinstance(k, str) or not isinstance(v, str):
-                    self.init_status = RegistryStatus.PARTIAL
                     self.invalid[k] = v
                 elif not dir_exists(v): 
-                    self.init_status = RegistryStatus.PARTIAL
                     self.broken[k] = v
                 else: self[k] = v
     
